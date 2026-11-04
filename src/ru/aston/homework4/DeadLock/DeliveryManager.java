@@ -1,8 +1,11 @@
 package ru.aston.homework4.DeadLock;
 
+import java.util.concurrent.CountDownLatch;
+
 public class DeliveryManager {
     private final Order order;
     private final Courier courier;
+    private final CountDownLatch latch = new CountDownLatch(2);
 
     public DeliveryManager(Order order, Courier courier) {
         this.order = order;
@@ -14,10 +17,13 @@ public class DeliveryManager {
 
         synchronized (order) {
             System.out.println(threadName + " Ресторан начал готовить: " + order.getDishName());
-
+            latch.countDown();
             try {
-                Thread.sleep(50);
+                latch.await();
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                System.err.println(threadName + " Поток был прерван во время ожидания.");
+                return;
             }
 
             System.out.println(threadName + " Еда готова! Ищу курьера " + courier.getName() + " для выдачи...");
@@ -33,10 +39,13 @@ public class DeliveryManager {
 
         synchronized (courier) {
             System.out.println(threadName + " Курьер " + courier.getName() + " заблокирован в системе (назначен на заказ).");
-
+            latch.countDown();
             try {
-                Thread.sleep(50);
+                latch.await();
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                System.err.println(threadName + " Поток был прерван во время ожидания.");
+                return;
             }
 
             System.out.println(threadName + " Маршрут построен! Пытаюсь связать курьера с заказом " + order.getOrderId() + "...");

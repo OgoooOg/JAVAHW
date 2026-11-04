@@ -6,8 +6,11 @@ public class Main {
 
         SequencePrinter printer = new SequencePrinter();
 
-        NumberThread thread1 = new NumberThread(printer, 1, "Thread-1");
-        NumberThread thread2 = new NumberThread(printer, 2, "Thread-2");
+        NumberThread task1 = new NumberThread(printer, 1);
+        NumberThread task2 = new NumberThread(printer, 2);
+
+        Thread thread1 = new Thread(task1, "Thread-1");
+        Thread thread2 = new Thread(task2, "Thread-2");
 
         thread1.start();
         thread2.start();

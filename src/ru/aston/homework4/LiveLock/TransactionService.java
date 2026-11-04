@@ -1,9 +1,15 @@
 package ru.aston.homework4.LiveLock;
 
-public class TransactionService {
-    private volatile boolean isWorkerActive = false;
+import java.math.BigDecimal;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-    public void transfer(BankAccount from, BankAccount to, int amount) {
+public class TransactionService {
+    private final CyclicBarrier barrier = new CyclicBarrier(2);
+    private final AtomicBoolean isTransferring = new AtomicBoolean(false);
+
+    public void transfer(BankAccount from, BankAccount to, BigDecimal amount) {
         String threadName = "[" + Thread.currentThread().getName() + "]";
 
         while (true) {
@@ -11,28 +17,21 @@ public class TransactionService {
                 try {
                     System.out.println(threadName + " Заблокировал свой счет: " + from.getOwnerName());
 
-                    if (isWorkerActive) {
-                        System.out.println(threadName + " Видит активность другого потока. ОТКАТ.");
-                        continue;
+                    try {
+                        barrier.await();
+                    } catch (InterruptedException | BrokenBarrierException e) {
+                        Thread.currentThread().interrupt();
+                        return;
                     }
 
-                    isWorkerActive = true;
+                    if (isTransferring.compareAndSet(false, true)) {
+                        System.out.println(threadName + " Проверяет доступность счета получателя: " + to.getOwnerName() + "...");
 
-                    System.out.println(threadName + " Проверяет доступность счета получателя: " + to.getOwnerName() + "...");
-
-                    if (to.tryLockAccount()) {
-                        try {
-                            from.withdraw(amount);
-                            to.deposit(amount);
-
-                            System.out.println(threadName + " Имитация операции завершена. Иду на новый круг уступок...");
-                            isWorkerActive = false;
-                        } finally {
-                            to.unlockAccount();
-                        }
-                    } else {
                         System.out.println(threadName + " Счет " + to.getOwnerName() + " занят. ОТКАТ.");
-                        isWorkerActive = false;
+
+                        isTransferring.set(false);
+                    } else {
+                        System.out.println(threadName + " Счет " + to.getOwnerName() + " занят (видит активность). ОТКАТ.");
                     }
 
                 } finally {
@@ -43,6 +42,8 @@ public class TransactionService {
             try {
                 Thread.sleep(1);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
             }
         }
     }

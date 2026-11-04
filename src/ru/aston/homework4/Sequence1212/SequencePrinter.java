@@ -3,9 +3,9 @@ package ru.aston.homework4.Sequence1212;
 public class SequencePrinter {
     private boolean isFirstTurn = true;
 
-    public synchronized void printOne() {
+    public synchronized void print(int number) {
         while (true) {
-            while (!isFirstTurn) {
+            while ((number == 1 && !isFirstTurn) || (number == 2 && isFirstTurn)) {
                 try {
                     wait();
                 } catch (InterruptedException e) {
@@ -14,28 +14,9 @@ public class SequencePrinter {
                 }
             }
 
-            System.out.print("1 ");
+            System.out.println(number);
 
-            isFirstTurn = false;
-
-            notifyAll();
-        }
-    }
-
-    public synchronized void printTwo() {
-        while (true) {
-            while (isFirstTurn) {
-                try {
-                    wait();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    return;
-                }
-            }
-
-            System.out.print("2 ");
-
-            isFirstTurn = true;
+            isFirstTurn = !isFirstTurn;
 
             notifyAll();
         }
