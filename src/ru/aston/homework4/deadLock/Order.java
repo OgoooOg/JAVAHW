@@ -1,4 +1,4 @@
-package ru.aston.homework4.DeadLock;
+package ru.aston.homework4.deadLock;
 
 public class Order {
     private final String orderId;

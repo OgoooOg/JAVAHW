@@ -1,4 +1,4 @@
-package ru.aston.homework4.LiveLock;
+package ru.aston.homework4.liveLock;
 import java.math.BigDecimal;
 
 public class Main {

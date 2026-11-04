@@ -1,4 +1,4 @@
-package ru.aston.homework4.Sequence1212;
+package ru.aston.homework4.sequence1212;
 
 public class NumberThread implements Runnable {
     private final SequencePrinter printer;
